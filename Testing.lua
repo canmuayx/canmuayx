@@ -3,7 +3,7 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
---- สร้างหน้าต่าง Fluent
+-- สร้างหน้าต่าง Fluent
 local Window = Fluent:CreateWindow({
     Title = "Canmuay X " .. Fluent.Version,
     SubTitle = "Auto Fishing testing",
@@ -14,7 +14,6 @@ local Window = Fluent:CreateWindow({
 
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "" }),
-    Misc = Window:AddTab({ Title = "Misc", Icon = "tool" }), -- เพิ่มแท็บ Misc
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
@@ -40,17 +39,6 @@ local function UpdateSetCFrame()
             Duration = 5
         })
     end
-end
-
--- ฟังก์ชัน Anti AFK
-local function AntiAFK()
-    local args = { [1] = false }
-    ReplicatedStorage:WaitForChild("events"):WaitForChild("afk"):FireServer(unpack(args))
-    Fluent:Notify({
-        Title = "Anti AFK",
-        Content = "You are now active!",
-        Duration = 5
-    })
 end
 
 -- ฟังก์ชันติดตั้งไอเทม
@@ -86,7 +74,28 @@ local function AutoReel()
     ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(unpack(args))
 end
 
--- สร้างปุ่ม GUI สำหรับแท็บ Main
+-- ฟังก์ชัน AutoShake ที่ลูปเร็วขึ้น
+local function AutoShake()
+    while true do
+        -- ทำการ Shake หรือคำสั่งที่ต้องการให้ทำงานเร็วขึ้น
+        -- ใส่คำสั่งที่ต้องการให้ทำงาน
+        task.wait(0.1)  -- ลดเวลาให้เร็วขึ้น
+    end
+end
+
+-- ซ่อนปุ่ม ImageButton ที่มองเห็นได้
+local function HideImageButton(button)
+    if button:IsA("ImageButton") and button.Visible then
+        button.Visible = false  -- ซ่อนปุ่ม
+    end
+end
+
+-- ทดสอบกับปุ่มต่างๆ ใน PlayerGui
+for _, button in ipairs(game:GetService("Players").LocalPlayer.PlayerGui:GetDescendants()) do
+    HideImageButton(button)
+end
+
+-- สร้างปุ่ม GUI
 Tabs.Main:AddButton({
     Title = "Set CFrame",
     Callback = function()
@@ -98,7 +107,7 @@ local autocastToggle = Tabs.Main:AddToggle("AutocastToggle", { Title = "Enable A
 autocastToggle:OnChanged(function()
     while autocastToggle.Value do
         AutoCast()
-        task.wait(1) -- Delay เพื่อป้องกันการทำงานเร็วเกินไป
+        task.wait(0.1) -- Delay เพื่อป้องกันการทำงานเร็วเกินไป
     end
 end)
 
@@ -106,7 +115,7 @@ local autoreelToggle = Tabs.Main:AddToggle("AutoreelToggle", { Title = "Enable A
 autoreelToggle:OnChanged(function()
     while autoreelToggle.Value do
         AutoReel()
-        task.wait(1) -- Delay เพื่อป้องกันการรบกวนเซิร์ฟเวอร์
+        task.wait(0.1) -- Delay เพื่อป้องกันการรบกวนเซิร์ฟเวอร์
     end
 end)
 
@@ -120,14 +129,6 @@ Tabs.Main:AddButton({
             end
         end
         print("Fishing Rod Equipped!")
-    end
-})
-
--- สร้างปุ่ม GUI สำหรับแท็บ Misc
-Tabs.Misc:AddButton({
-    Title = "Anti AFK",
-    Callback = function()
-        AntiAFK()
     end
 })
 
