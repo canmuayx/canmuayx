@@ -60,7 +60,7 @@ Close.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Close.BorderSizePixel = 0
 Close.Position = UDim2.new(0, 467, 0, 17)
 Close.Size = UDim2.new(0.0396886321, 0, 0.067187503, 0)
-Close.Image = "http://www.roblox.com/asset/?id=81692992170632"
+Close.Image = "http://www.roblox.com/asset/?id=106937744587802"
 
 UICorner.Parent = Close
 
