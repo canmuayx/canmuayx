@@ -1,151 +1,73 @@
--- โหลด Fluent และ Addons
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+function lak(f)
+    local gui = f
 
---- สร้างหน้าต่าง Fluent
-local Window = Fluent:CreateWindow({
-    Title = "Canmuay X " .. Fluent.Version,
-    SubTitle = "Auto Fishing testing",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Theme = "Dark"
-})
+    local dragging = false
+    local dragInput = nil
+    local dragStart = nil
+    local startPos = nil
 
-local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "" }),
-    Misc = Window:AddTab({ Title = "Misc", Icon = "tool" }), -- เพิ่มแท็บ Misc
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
-}
-
-local Options = Fluent.Options
-
--- บริการหลัก
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-local Char = LocalPlayer.Character
-local HR = Char and Char:FindFirstChild("HumanoidRootPart")
-
--- ตัวแปรตำแหน่ง CFrame
-local SetCFrame = HR and HR.CFrame
-
--- ฟังก์ชัน SetCFrame
-local function UpdateSetCFrame()
-    if HR then
-        SetCFrame = HR.CFrame
-        Fluent:Notify({
-            Title = "SetCFrame",
-            Content = "Position has been updated.",
-            Duration = 5
-        })
-    end
-end
-
--- ฟังก์ชัน Anti AFK
-local function AntiAFK()
-    local args = { [1] = false }
-    ReplicatedStorage:WaitForChild("events"):WaitForChild("afk"):FireServer(unpack(args))
-    Fluent:Notify({
-        Title = "Anti AFK",
-        Content = "You are now active!",
-        Duration = 5
-    })
-end
-
--- ฟังก์ชันติดตั้งไอเทม
-local function equipitem(v)
-    if LocalPlayer.Backpack:FindFirstChild(v) then
-        local Eq = LocalPlayer.Backpack:FindFirstChild(v)
-        LocalPlayer.Character.Humanoid:EquipTool(Eq)
-    end
-end
-
--- ฟังก์ชัน Autocast
-local function AutoCast()
-    if HR and SetCFrame then
-        -- ย้ายกลับไปยังตำแหน่ง SetCFrame
-        if (SetCFrame.Position - HR.Position).Magnitude >= 1 then
-            HR.CFrame = SetCFrame
+    local function update(input)
+        if not dragStart then
+            return
         end
+        local delta = input.Position - dragStart
+        gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
 
-        -- ใช้งาน Rod
-        local Rod = LocalPlayer.Character:FindFirstChildOfClass("Tool")
-        if Rod and Rod:FindFirstChild("events") then
-            Rod.events.cast:FireServer(100, 1)
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = gui.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
         end
-    end
+    end)
+
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
 end
 
--- ฟังก์ชัน AutoReel
-local function AutoReel()
-    local args = {
-        [1] = 100,
-        [2] = true
-    }
-    ReplicatedStorage:WaitForChild("events"):WaitForChild("reelfinished"):FireServer(unpack(args))
+if game.CoreGui:FindFirstChild('XesonzClose') then
+    game.CoreGui:FindFirstChild('XesonzClose'):Destroy()
 end
 
--- สร้างปุ่ม GUI สำหรับแท็บ Main
-Tabs.Main:AddButton({
-    Title = "Set CFrame",
-    Callback = function()
-        UpdateSetCFrame()
-    end
-})
+local ScreenGui = Instance.new("ScreenGui")
+local Close = Instance.new("ImageButton")
+local UICorner = Instance.new("UICorner")
 
-local autocastToggle = Tabs.Main:AddToggle("AutocastToggle", { Title = "Enable Autocast", Default = false })
-autocastToggle:OnChanged(function()
-    while autocastToggle.Value do
-        AutoCast()
-        task.wait(1) -- Delay เพื่อป้องกันการทำงานเร็วเกินไป
-    end
+ScreenGui.Name = "XesonzClose"
+ScreenGui.Parent = game:WaitForChild("CoreGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+Close.Name = "Close"
+Close.Parent = ScreenGui
+Close.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+Close.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Close.BorderSizePixel = 0
+Close.Position = UDim2.new(0, 467, 0, 17)
+Close.Size = UDim2.new(0.0396886321, 0, 0.067187503, 0)
+Close.Image = "http://www.roblox.com/asset/?id=81692992170632"
+
+UICorner.Parent = Close
+
+Close.MouseButton1Click:Connect(function()
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    VirtualInputManager:SendKeyEvent(true, "RightControl", false, game)
+    VirtualInputManager:SendKeyEvent(false, "RightControl", false, game)
 end)
 
-local autoreelToggle = Tabs.Main:AddToggle("AutoreelToggle", { Title = "Enable AutoReel", Default = false })
-autoreelToggle:OnChanged(function()
-    while autoreelToggle.Value do
-        AutoReel()
-        task.wait(1) -- Delay เพื่อป้องกันการรบกวนเซิร์ฟเวอร์
-    end
-end)
-
--- ปุ่มสำหรับติดตั้ง Fishing Rod
-Tabs.Main:AddButton({
-    Title = "Equip Fishing Rod",
-    Callback = function()
-        for i, v in pairs(LocalPlayer.Backpack:GetChildren()) do
-            if v:IsA("Tool") and v.Name:lower():find("rod") then
-                equipitem(v.Name)
-            end
-        end
-        print("Fishing Rod Equipped!")
-    end
-})
-
--- สร้างปุ่ม GUI สำหรับแท็บ Misc
-Tabs.Misc:AddButton({
-    Title = "Anti AFK",
-    Callback = function()
-        AntiAFK()
-    end
-})
-
--- ตั้งค่าต่าง ๆ
-InterfaceManager:SetLibrary(Fluent)
-SaveManager:SetLibrary(Fluent)
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({})
-SaveManager:SetFolder("FluentScriptHub/specific-game")
-InterfaceManager:SetFolder("FluentScriptHub")
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
-
-Window:SelectTab(1)
-SaveManager:LoadAutoloadConfig()
-
-Fluent:Notify({
-    Title = "Fluent",
-    Content = "Auto Fishing Script Loaded!",
-    Duration = 8
-})
+lak(Close)
